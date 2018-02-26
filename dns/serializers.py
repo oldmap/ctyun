@@ -11,6 +11,7 @@ class DomainSerializer(serializers.ModelSerializer):
 
 class RecordSerializer(serializers.ModelSerializer):
 
+
     class Meta:
         model = Record
         fields = '__all__'
