@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="zh-CN">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <meta name="description" content="大数据自动运维平台">
+    <meta name="author" content="刘晓涛">
+
+    <title>login</title>
+    <link rel="icon" href="{% static 'favicon.ico' %}">
+    <link href="{% static 'bootstrap/css/bootstrap.css' %}" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="{% static 'bootstrap/css/signin.css' %}" rel="stylesheet">
+
+  </head>
+
+  <body>
+    <div class="container">
+      <form class="form-signin" method="post" action="">
+          {% csrf_token %}
+        <h2 class="form-signin-heading">Please sign in</h2>
+            <label for="inputEmail" class="sr-only">Username</label>
+          <input type="text" id="inputUsername" name=username class="form-control" placeholder="Username" required autofocus>
+          <label for="inputPassword" class="sr-only">Password</label>
+          <input type="password" id="inputPassword" name="password" class="form-control" placeholder="Password" required>
+          {% if error %}
+            <p>{{ error }}</p>
+          {% endif %}
+          <button class="btn btn-lg btn-primary btn-block" type="submit">登录</button>
+      </form>
+
+    </div> <!-- /container -->
+
+  </body>
+</html>

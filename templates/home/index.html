@@ -1,0 +1,9 @@
+{% extends 'home/base.html' %}
+{% load static i18n %}
+
+{% block custom_content_right %}
+    <div class="container-fluid">
+        <h4 class="page-header">welcome<small>{{ request.user }}</small></h4>
+    </div>  <!-- continer -->
+{% endblock %}
+

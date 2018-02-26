@@ -1,0 +1,424 @@
+{% extends 'home/base.html' %}
+{% load static i18n %}
+
+{% block title %}
+    <title>dns</title>
+{% endblock %}
+
+{% block custom_content_right %}
+
+    <div class="container-fluid">
+{#        <h4 class="page-header">DNS管理后台 <small>ctc.local</small></h4>#}
+
+        <div>
+            <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#add_single_record">添加解析</button>
+            <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#myModal">从文件导入</button>
+            <button id="batch-edit-btn">批量编辑</button>
+            <button id="batch-save-btn">批量保存</button>
+            <button id="rndc">客户端同步</button>
+        </div>
+
+        <div style="color: red;" id="error_logs">
+
+        </div>
+
+        <div class="modal fade" id="add_single_record" tabindex="-1" role="dialog" aria-labelledby="header_new_record">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content" style="width: 600px; overflow: auto;">
+              <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="header_new_record">新增解析</h4>
+              </div>
+              <div class="modal-body">
+                  <div style="height: 200px;">
+                      <form  id="RecordForm" class="form-group" method="post" action="">
+                          {% csrf_token %}
+                          <p><label>主机名:</label>{{ record_form_obj.host }}</p>
+                          <p><label>域&nbsp;&nbsp;&nbsp;&nbsp;名:</label>{{ record_form_obj.zone }}</p>
+                          <p><label>类&nbsp;&nbsp;&nbsp;&nbsp;型:</label>{{ record_form_obj.type }}</p>
+                          <p><label>记录值:</label>{{ record_form_obj.value }}</p>
+                          <p><label>优先级:</label><input type="text" name="mx_priority" value=5></p>
+                      </form>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" id="cancel" class="btn btn-primary" data-dismiss="modal">取消</button>
+                <button type="button" id="add_record" class="btn btn-primary" data-dismiss="modal">添加</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">请选择文件</h4>
+                  <a href="{% static 'dns/files/records.xls' %}" download="records.xls">下载模板</a>
+                  <div>
+                       <img style="height: 200px; width: 550px" src="{% static 'dns/images/dns.png' %}">
+                  </div>
+              </div>
+              <div class="modal-body">
+                <input  id="input" type="file" name="files[]" multiple accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                <output id="output" style="overflow: auto"></output>
+              </div>
+              <div class="modal-footer">
+                <button type="button" id="upload" disabled="disabled" class="btn btn-primary" onclick="submit()">导入</button>
+                <button type="button" id="conform" class="btn btn-default" data-dismiss="modal">确定</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+            <table id="mytable" class="table table-striped table-bordered"></table>
+        </div>
+
+    </div>  <!-- continer -->
+{% endblock %}
+
+{% block custom_js %}
+    <script src="{% static 'bootstrap/js/shim.min.js' %}"></script>
+    <script src="{% static 'bootstrap/js/xlsx.full.min.js' %}"></script>
+    <script type="text/javascript" charset="utf-8">
+        // 初始化datatable
+        var table = $('#mytable').DataTable({
+            "ajax": {
+                "url": "records/",
+                //"datasrc": "", // 三种类型 '' 'data' 'staff'
+                "datasrc": "",
+                "type": "get",
+                "error": function () {
+                    alert("服务器未正常响应，请重试");
+                }
+            },
+            // 若获取的数据是数组（列表）类型，使用 索引下标 来指定要显示的字段
+            // 若是object      （字典）类型，使用  key   来指定要显示的字段
+            "columns": [
+                {"data": "id", "title": "序号"},
+                {"data": "host", "title": "主机记录"},
+                {"data": "zone__name", "title": "域名"},
+                {"data": "type__name", "title": "记录类型"},
+                {"data": "value", "title": "记录值"},
+                {"data": "mx_priority", "title": "优先级"},
+                {
+                    "data": null,
+                    "title": "操作",
+                    "defaultContent": "<button class='edit-btn' type='button'>编辑</button> <button class='delete-btn'><span class='glyphicon-class glyphicon glyphicon-trash'></span></button>"
+                }
+            ],
+            "language": {
+                "sProcessing": "处理中...",
+                "sLengthMenu": "显示 _MENU_ 项结果",
+                "sZeroRecords": "没有匹配结果",
+                "sInfo": "显示第 _START_ 至 _END_ 项结果，共 _TOTAL_ 项",
+                "sInfoEmpty": "显示第 0 至 0 项结果，共 0 项",
+                "sInfoFiltered": "(由 _MAX_ 项结果过滤)",
+                "sInfoPostFix": "",
+                "sSearch": "搜索:",
+                "sUrl": "",
+                "sEmptyTable": "表中数据为空",
+                "sLoadingRecords": "载入中...",
+                "sInfoThousands": ",",
+                "oPaginate": {
+                    "sFirst": "首页",
+                    "sPrevious": "上页",
+                    "sNext": "下页",
+                    "sLast": "末页"
+                },
+                "oAria": {
+                    "sSortAscending": ": 以升序排列此列",
+                    "sSortDescending": ": 以降序排列此列"
+                }
+            }
+        }); //end datatable
+
+        $('#mytable tbody').on("click", ".edit-btn", function () {
+            var tds=$(this).parent().parent().children();
+            $.each(tds, function(i,val){
+                var jqob=$(val);
+                if(i < 1 || jqob.has('button').length ){return true;}//跳过第1项 序号,按钮
+                var txt=jqob.text();
+                var put=$("<input type='text'>");
+                put.val(txt);
+                jqob.html(put);
+            });
+            $(this).html("保存");
+            $(this).toggleClass("edit-btn");
+            $(this).toggleClass("save-btn");
+        }); // end edit
+
+        $("#mytable tbody").on("click",".save-btn",function(){
+            var row=table.row($(this).parents("tr"));
+            var tds=$(this).parents("tr").children();
+            $.each(tds, function(i,val){
+                var jqob=$(val);
+                //把input变为字符串
+                if(!jqob.has('button').length){
+                    var txt=jqob.children("input").val();
+                    jqob.html(txt);
+                    table.cell(jqob).data(txt);//修改DataTables对象的数据
+                }
+            });
+            var data=row.data();
+            console.log(data);
+            $.ajax({
+                "url":"/dns/record/",
+                "data":data,
+                "type":"post",
+                "error":function(){
+                    alert("服务器未正常响应，请重试");
+                    console.log(data,'提交失败!');
+                },
+                "success":function(response){
+                    if(response == 'ok'){
+                        console.log(data,'更新成功!',response);
+                        table.ajax.reload();
+                    }else{
+                        alert('更新失败!');
+                        console.log(data,'更新失败!',response);
+                    }
+                }
+            });
+            $(this).html("编辑");
+            $(this).toggleClass("edit-btn");
+            $(this).toggleClass("save-btn");
+        });
+
+        $("#mytable tbody").on("click",".delete-btn",function(){
+            // 从数据库中删除当前行
+            var row=table.row($(this).parents("tr"));
+            var data=row.data();
+            $.ajax({
+                "url": "{% url 'delete' %}",
+                "data": data,
+                "type": "post",
+                "error": function() {
+                    alert("服务器未正常响应，请重试");
+                    console.log(data, '删除失败!');
+                },
+                "success": function(response){
+                    if (response == 'ok'){
+                        console.log(data, '删除成功!');
+                        //row.remove().draw();
+                        // 从datatable对象中删除该对象(也会同时删除html文档)
+                        if(confirm("确定要删除该条记录吗？")){
+                            row.remove().draw();
+                        };
+                    }else {
+                        alert(response);
+                        console.log(data, '删除失败!');
+                    }
+                }
+            });
+        });
+
+        function add_single_record(){
+            // ajax提交form 获取返回值并展示
+            // formData可以获取HTML中form表单的数据，目前遇到些问题，暂时采用笨方法
+            // var myForm = $('#RecordForm');
+            // var myForm = document.getElementById('RecordForm')[0]
+            // var fd = new FormData(myForm);
+            var data = {};
+            data['host'] = $("#RecordForm input[name='host']").val();
+            data['zone'] = $("#RecordForm select[name='zone']").val();
+            data['type'] = $("#RecordForm select[name='type']").val();
+            data['value'] = $("#RecordForm input[name='value']").val();
+            data['mx_priority'] = $("#RecordForm input[name='mx_priority']").val();
+            // 刷新table
+            $.ajax({
+                "url":"/dns/",
+                "data":data,
+                "type":"post",
+                "error":function(){
+                    alert("服务器未正常响应，请重试");
+                    console.log(data,'添加失败!');
+                },
+                "success":function(response){
+                    if(response == 'ok'){
+                        console.log(data,'添加成功!', response);
+                        alert('添加成功!'+ response);
+                        table.ajax.reload();
+                    }else{
+                        console.log(data,'添加失败!',response);
+                        alert('更新失败!'+response);
+                    }
+                }
+            });
+            // table增加行
+            {#table.row.add({#}
+            {#    "id": '1',#}
+            {#    "host": "hahaha",#}
+            {#    "zone__name": "ctc.local",#}
+            {#    "type__name": "A",#}
+            {#    "value": "1.1.1.1",#}
+            {#    "mx_priority": "5",#}
+            //}).draw();
+        }
+
+       //批量点击编辑按钮
+       $("#batch-edit-btn").click(function(){
+           $(".edit-btn").click();
+       });
+
+       $("#batch-save-btn").click(function(){
+           $(".save-btn").click();
+       });
+
+       // 从文件导入的代码
+        var error_msg = '';
+        // 读取excel文件(转换成json)
+        var result;
+
+        function fileType(file){
+            // 检测文件类型
+            var imgName = file.name;
+            var idx = imgName.lastIndexOf(".");
+            if (idx != -1){
+                var ext = imgName.substr(idx+1).toUpperCase();
+                ext = ext.toLowerCase( );
+                if (ext != 'xlsx' && ext != 'xls'){
+                    alert("只能上传execl文件!");
+                    return false;
+                }else{
+                    return true;
+                }
+            }
+        }
+
+        function handleFile(e) {
+            // 检测文件类型
+            var files = e.target.files, f = files[0];
+            // 检测文件类型
+            var is_excel = fileType(f);
+            if (is_excel) {
+                var reader = new FileReader();
+                reader.readAsBinaryString(f);
+                reader.onload = function(e) {
+                    var data = e.target.result;
+                    var workbook = XLSX.read(data, {type: 'binary'});
+
+                    /* DO SOMETHING WITH workbook HERE */
+                    var firs_sheet = workbook.SheetNames[0];
+                    result = XLSX.utils.sheet_to_json(workbook.Sheets[firs_sheet], {header:1});
+                    // 检查文件内容是否合法数据
+                    checkFile();
+                };
+            }
+        }
+
+        function checkFile() {
+            // 默认输出框是空的，提交按钮是灰色不能提交
+            $('#output').html('');
+            var all_data_is_valid = true;
+            // 循环验证每条数据是否合法,存在非法数据则红色输出
+            for (var i=0; i<result.length; i++) {
+                console.log('从excel读取的数据长度为:' + result[i].length);
+                var flag = true;
+                if(result[i].length != 4){
+                    all_data_is_valid = false;
+                    flag = false;
+                }else{
+                    for (var j=0; j<4; j++) {
+                        if(result[i][j] == null){
+                            flag = false;
+                            all_data_is_valid = false;
+                        }
+                    }
+                }
+                // 如果单条数据不合法，则红色输出到输出框
+                if(flag == false){
+                    var excel_row = i+1;
+                    var msg = "<p style='color: red'>" +'第'+ excel_row +'行:'+ result[i] + '格式错误</p>';
+                    $('#output').append(msg);
+                    $('#upload').attr('disabled', true);
+                }
+            }
+            // 若所有数据均合法, 可以点击提交
+            if (all_data_is_valid){
+                $('#upload').attr('disabled', false);
+            }
+        }
+
+        function reload_table(){
+            // 重新加载datatable
+            table.ajax.reload();
+        }
+
+        function submit() {
+            // 清空日志
+            $('#error_logs').html('');
+
+            console.log('数据格式正确，开始提交.');
+            for (var i=1; i<result.length; i++) {
+                var data = {
+                    'host': result[i][0],
+                    'zone__name': result[i][1],
+                    'type__name': result[i][2],
+                    'value': result[i][3],
+                };
+                console.log('提交的数据为:', data);
+                $.ajax({
+                    "url": "{% url 'record' %}",
+                    "data": data,
+                    "type": "post",
+                    "error": function(){
+                        alert("添加失败");
+                    },
+                    "success":function(callback){
+                        if (callback != 'ok'){
+                            // 若存在未提交成功的数据，则将记录放在error_log中
+                            var msg = "<p >" + JSON.stringify(data) + '添加失败:' + callback +'</p>';
+                            error_msg += msg;
+                            $('#error_logs').append(error_msg);
+                            console.log(data,'提交失败!');
+                        }else{
+                            console.log(data,'提交成功!')
+                        }
+                    }
+                });
+            }
+            $('#upload').attr('disabled', true);
+
+            // 刷新页面
+            //window.location.reload();
+        }
+
+        function rndc_reload() {
+            $.ajax({
+                url: "http://dns01.ctyun.org:18080/rndc_reload/",
+                type: "GET",
+                dataType: "text",
+                //data: data,
+                success: function (callback) {
+                    alert('10.35.129.61' + callback);
+                },
+                error: function () {
+                    alert('10.35.129.61:连接失败！')
+                }
+            });
+
+            $.ajax({
+                url: "http://dns02.ctyun.org:18080/rndc_reload/",
+                type: "GET",
+                dataType: "text",
+                //data: data,
+                success: function (callback) {
+                    alert('10.35.129.62' + callback);
+                },
+                error: function () {
+                    alert('10.35.129.62: 连接失败！')
+                }
+            });
+        }
+
+        // 刷新datatable
+        document.getElementById('input').addEventListener('change', handleFile, false);
+        document.getElementById('conform').addEventListener('click', reload_table, false);
+        document.getElementById('rndc').addEventListener('click', rndc_reload, false);
+        document.getElementById('add_record').addEventListener('click', add_single_record, false);
+    </script>
+
+{% endblock %}

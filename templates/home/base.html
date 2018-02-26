@@ -1,0 +1,153 @@
+{% load static i18n %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <meta name="description" content="bigdata.chinatelecom.cn">
+    <meta name="author" content="liuxiaotao">
+    <link rel="icon" href="{% static 'favicon.ico' %}">
+
+
+    <!-- Bootstrap core CSS -->
+    <link href="{% static 'bootstrap/css/bootstrap.css' %}" rel="stylesheet">
+    <link href="{% static 'bootstrap/css/bootstrap-theme.css' %}" rel="stylesheet">
+    <link href="{% static 'bootstrap/css/bootstrap-datetimepicker.css' %}" rel="stylesheet">
+    <link href="{% static 'bootstrap/css/dataTables.bootstrap.css' %}" rel="stylesheet">
+    <link href="{% static 'bootstrap/css/jquery.dataTables.css' %}" rel="stylesheet">
+    <link href="{% static 'bootstrap/css/shouye.css' %}" rel="stylesheet">
+
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <link href="{% static 'bootstrap/css/ie10-viewport-bug-workaround.css' %}" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="{% static 'bootstrap/js/html5shiv.min.js' %}"></script>
+      <script src="{% static 'bootstrap/js/respond.min.js' %}"></script>
+    <![endif]-->
+
+    {% block title %}
+        <title>大数据运维平台</title>
+    {% endblock %}
+    {% block custom_css %}
+
+    {% endblock %}
+</head>
+
+<body>
+{% block custom_navbar %}
+    <div class="navbar navbar-duomi navbar-static-top" role="navigation">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#" id="logo">中国电信</a>
+            </div>
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+{#              <ul class="nav navbar-nav">#}
+{#                <li class="active"><a href="#">test1</a></li>#}
+{#                <li><a href="#">test2</a></li>#}
+{#              </ul>#}
+              <ul class="nav navbar-nav navbar-right">
+                <li class="dropdown">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{ request.user }} <span class="caret"></span></a>
+                  <ul class="dropdown-menu">
+                    <li><a href="/logout/">注销</a></li>
+                    <li><a href="#">action1</a></li>
+                    <li role="separator" class="divider"></li>
+                    <li><a href="#">action2</a></li>
+                  </ul>
+                </li>
+              </ul>
+              <form class="navbar-form navbar-right">
+                <div class="form-group">
+                  <input type="text" class="form-control" placeholder="Search">
+                </div>
+                <button type="submit" class="btn btn-default">Submit</button>
+              </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block custom_content_left %}
+    <div class="container-fluid">
+        <div class="row content">
+            <div class="col-md-2 content-left">
+                <ul id="main-nav" class="nav nav-tabs nav-stacked" style="">
+                    <li class="active"><a href="/"><i class="glyphicon glyphicon-th-large"></i>首页</a></li>
+                    <li>
+                        <a href="#systemSetting" class="nav-header collapsed" data-toggle="collapse">
+                            <i class="glyphicon glyphicon-cog"></i>
+                            系统管理
+                            <span class="glyphicon glyphicon-chevron-down pull-right"></span>
+                        </a>
+                        <ul id="systemSetting" class="nav nav-list collapse secondmenu" style="height: 0px;">
+                            <li><a href="#"><i class="glyphicon glyphicon-user"></i>用户管理</a></li>
+                            <li><a href="#"><i class="glyphicon glyphicon-th-list"></i>菜单管理</a></li>
+                            <li><a href="#"><i class="glyphicon glyphicon-asterisk"></i>角色管理</a></li>
+                            <li><a href="#"><i class="glyphicon glyphicon-edit"></i>修改密码</a></li>
+                            <li><a href="#"><i class="glyphicon glyphicon-eye-open"></i>日志查看</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#"><i class="glyphicon glyphicon-credit-card"></i>资产管理</a></li>
+                    <li><a href="#"><i class="glyphicon glyphicon-globe"></i>分发配置</a></li>
+                    <li><a href="#"><i class="glyphicon glyphicon-calendar"></i>图表统计</a></li>
+                    <li><a href="/dns/"><i class="glyphicon glyphicon-fire"></i>DNS管理</a></li>
+                </ul>
+            </div>
+            <div class="col-md-10 content-right" style="background-color: #eee">
+        {% endblock %}
+
+        {% block custom_content_right %}
+        {% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'bootstrap/js/jquery.js' %}"></script>
+    <script src="{% static 'bootstrap/js/bootstrap.js' %}"></script>
+    <script src="{% static 'bootstrap/js/jquery.dataTables.js' %}"></script>
+    <script src="{% static 'bootstrap/js/dataTables.bootstrap.js' %}"></script>
+    <script src="{% static 'bootstrap/js/ie10-viewport-bug-workaround.js' %}"></script>
+    <script src="{% static 'bootstrap/js/ie-emulation-modes-warning.js' %}"></script>
+
+    <!-- django post csrf token protect -->
+    <script type="text/javascript">
+        // 解决django中使用ajax提交post请求收到csrftoken保护的问题
+        // 官网：https://docs.djangoproject.com/en/1.11/ref/csrf/
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        var csrftoken = getCookie('csrftoken');
+        function csrfSafeMethod(method) {
+            // these HTTP methods do not require CSRF protection
+            return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+        }
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+    </script>
+
+{% block custom_js %}
+
+{% endblock %}
+
+</body>
+</html>
