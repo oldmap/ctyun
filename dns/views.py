@@ -3,7 +3,7 @@ from rest_framework import viewsets
 from dns.models import Domain, Record
 from dns.serializers import *
 from django.shortcuts import render
-
+from dns.forms import RecordForm
 
 class TypeViewSet(viewsets.ModelViewSet):
     queryset = Type.objects.all()
@@ -22,6 +22,6 @@ class RecordViewSet(viewsets.ModelViewSet):
 
 @login_required
 def index(request):
-    records = Record.objects.all()
-    return render(request, 'dns/index.html', {'records': records})
+    record_form_obj = RecordForm()
+    return render(request, 'dns/index.html', {'record_form_obj': record_form_obj})
 
