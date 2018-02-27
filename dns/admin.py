@@ -10,6 +10,11 @@ class DomainAdmin(admin.ModelAdmin):
     list_display = ('id', 'name')
 
 
+class TypeAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name')
+
+
+admin.site.register(models.Type, TypeAdmin)
 admin.site.register(models.Domain, DomainAdmin)
 admin.site.register(models.Record, RecordAdmin)
 

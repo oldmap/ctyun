@@ -1,12 +1,11 @@
 from django.contrib import admin
-from django.urls import path
 from django.conf.urls import include,url
 from home import views as home_view
 
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('dns/', include('dns.urls')),
+    url('admin/', admin.site.urls),
+    url('dns/', include('dns.urls')),
 
     # url(r'^accounts/login/$', LoginView.as_view()),
     # url(r'^accounts/logout/$', LogoutView.as_view(next_page='/')),

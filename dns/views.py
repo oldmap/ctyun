@@ -1,8 +1,13 @@
 from django.contrib.auth.decorators import login_required
 from rest_framework import viewsets
 from dns.models import Domain, Record
-from dns.serializers import DomainSerializer, RecordSerializer
+from dns.serializers import *
 from django.shortcuts import render
+
+
+class TypeViewSet(viewsets.ModelViewSet):
+    queryset = Type.objects.all()
+    serializer_class = TypeSerializer
 
 
 class DomainViewSet(viewsets.ModelViewSet):

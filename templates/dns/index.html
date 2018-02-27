@@ -85,6 +85,41 @@
     <script src="{% static 'bootstrap/js/shim.min.js' %}"></script>
     <script src="{% static 'bootstrap/js/xlsx.full.min.js' %}"></script>
     <script type="text/javascript" charset="utf-8">
+        // 获取所有域名，拼接成字典形式
+        var domain_dict = {};
+        $.ajax({
+            async:false,
+            url: '/dns/api/domains/',
+            type: "GET",
+            dataType: "json",
+            success: function(result){
+                //console.log(result);
+                for(var i in result){
+                    domain_dict[result[i]['id']] = result[i]['name'];
+                }
+            },error:function(){
+                alert('获取域名失败!')
+            }
+        });
+        // console.log(domain_dict);
+
+        // 获取所有类型，拼接成字典形式
+        var type_dict = {};
+        $.ajax({
+            async:false,
+            url: '/dns/api/types/',
+            type: "GET",
+            dataType: "json",
+            success: function(result){
+                //console.log(result);
+                for(var i in result){
+                    type_dict[result[i]['id']] = result[i]['name'];
+                }
+            },error:function(){
+                alert('获取类型失败!')
+            }
+        });
+
         // 初始化datatable
         var table = $('#mytable').DataTable({
             "ajax": {
@@ -99,8 +134,8 @@
             // 若获取的数据是数组（列表）类型，使用 索引下标 来指定要显示的字段
             // 若是object      （字典）类型，使用  key   来指定要显示的字段
             "columns": [
-                {"data": "id", "title": "序号",  "searchable": false },
-                {"data": "host", "title": "主机记录",},
+                {"data": "id", "title": "序号",  "searchable": false, "visible": true },
+                {"data": "host", "title": "主机记录"},
                 {"data": "domain", "title": "域名"},
                 {"data": "type", "title": "记录类型"},
                 {"data": "value", "title": "记录值"},
@@ -113,43 +148,21 @@
             ],
 
             "columnDefs": [
-                // 自定义列
-                {
+                // 自定义列 目标列的位置 targets 以 columns为准计算的下表，并非 html显示结果（因为隐藏了1列导致HTML显示与js datatable配置的列数不同）
+                {   // 将  domain_id 转换成 domain_name 显示
                     "targets": [2],   // 目标列位置，下标从0开始
                     "data": "domain", // 数据列名
                     "render": function(data) { // 返回自定义内容
-                        var domain_list = {
-                            '1': 'ctyun.com',
-                            '2': 'ctyun.org',
-                            '3': 'ctyun.cn',
-                        };
-                        {#return "<select name=id>+" +#}
-                        {#    "<option value=0>ctyun.com</option>"+#}
-                        {#    "<option value=1>ctyun.org</option>"+#}
-                        {#    "<option value=2>ctyun.cn</option>"+#}
-                        {#    "<option value=3>ctyun.cc</option>"+#}
-                        {#    "</select>";#}
-                        return domain_list[data];
+                        return domain_dict[data];
                     }
                 },
-                {
+                {   // 将 type_id 转换成 type__name
                     "targets": [3],   // 目标列位置，下标从0开始
                     "data": "type", // 数据列名
                     "render": function(data) { // 返回自定义内容
-                        var type_list = {
-                            '0': 'A',
-                            '1': 'CNAME',
-                            '2': 'MX',
-                            '3': 'NS',
-                            '4': 'AAAA',
-                            '5': 'URL显性',
-                            '6': 'URL隐性',
-                            '7': 'SRV记录',
-                        };
-                        return type_list[data];
+                        return type_dict[data];
                     }
-                },
-
+                }
             ],
 
             "language": {
@@ -178,51 +191,82 @@
             }
         }); //end datatable
 
+        // 点击编辑按钮，获取表格的值，然后将按钮状态变为 "保存"
         $('#mytable tbody').on("click", ".edit-btn", function () {
             var tds=$(this).parent().parent().children();
             $.each(tds, function(i,val){
                 var jqob=$(val);
-                if(i < 1 || jqob.has('button').length ){return true;}//跳过第1项 序号,按钮
-                var txt=jqob.text();
-                var put=$("<input type='text'>");
-                put.val(txt);
-                jqob.html(put);
+                if(i < 1 || jqob.has('button').length ){return true;};  //跳过第0列 序号 或 按钮
+
+                if(i == 2){  // 第三项 doamin列 转换成下拉菜单
+                    var value = jqob.text();
+                    var html = "<select name='domain'>";
+                    for(var key in domain_dict){
+                        if(value == domain_dict[key]){
+                            var tmp = "<option selected=selected value='" + key + "'>" + domain_dict[key] + "</option>";
+                        }else{
+                            var tmp = "<option value='" + key + "'>" + domain_dict[key] + "</option>";
+                        }
+                        html += tmp;
+                    }
+                    html =  html + "</selecte>";
+                    jqob.html(html);
+                }else if(i == 3){  // 第type 列 转换成下拉菜单
+                    var value = jqob.text();
+                    var html = "<select name='type'>";
+                    for(var key in type_dict){
+                        if(value == type_dict[key]){
+                            var tmp = "<option selected=selected value='" + key + "'>" + type_dict[key] + "</option>";
+                        }else{
+                            var tmp = "<option value='" + key + "'>" + type_dict[key] + "</option>";
+                        }
+                        html += tmp;
+                    }
+                    html =  html + "</selecte>";
+                    jqob.html(html);
+                } else {
+                    // 其他列转换成 input标签
+                    var txt=jqob.text();
+                    var put=$("<input type='text'>");
+                    put.val(txt);
+                    jqob.html(put);
+                }
             });
             $(this).html("保存");
             $(this).toggleClass("edit-btn");
             $(this).toggleClass("save-btn");
         }); // end edit
 
+        // 点击保存按钮，获取表格的值(原始数据格式)，然后提交到后台，再将按钮转换成 "编辑"
         $("#mytable tbody").on("click",".save-btn",function(){
             var row=table.row($(this).parents("tr"));
             var tds=$(this).parents("tr").children();
             $.each(tds, function(i,val){
                 var jqob=$(val);
-                //把input变为字符串
+                // 获取输入框的值(select input)
                 if(!jqob.has('button').length){
-                    var txt=jqob.children("input").val();
+                    var txt=jqob.children().val();
                     jqob.html(txt);
                     table.cell(jqob).data(txt);//修改DataTables对象的数据
                 }
             });
             var data=row.data();
+            var id = data['id'];
+            var url = "/dns/api/records/" + id + "/";
             console.log(data);
+            console.log(url);
+            delete data.id;
             $.ajax({
-                "url":"/dns/api/records/",
-                "data":data,
-                "type":"post",
+                "url": url,
+                "data": data,
+                "type": "put",
                 "error":function(){
                     alert("服务器未正常响应，请重试");
                     console.log(data,'提交失败!');
                 },
                 "success":function(response){
-                    if(response == 'ok'){
-                        console.log(data,'更新成功!',response);
-                        table.ajax.reload();
-                    }else{
-                        alert('更新失败!');
-                        console.log(data,'更新失败!',response);
-                    }
+                    console.log(response, '更新成功！');
+                    table.ajax.reload();
                 }
             });
             $(this).html("编辑");
