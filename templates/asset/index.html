@@ -1,0 +1,84 @@
+{% extends 'home/base.html' %}
+{% load static i18n %}
+
+{% block title %}
+    <title>dns</title>
+{% endblock %}
+
+{% block custom_content_right %}
+
+    <div class="container-fluid">
+        <h4 class="page-header">资产管理<small> dev test</small></h4>
+
+        <div>
+            <table id="mytable" class="table table-striped table-bordered">
+            </table>
+        </div>
+
+    </div>  <!-- continer -->
+{% endblock %}
+
+{% block custom_js %}
+    <script src="{% static 'bootstrap/js/shim.min.js' %}"></script>
+    <script src="{% static 'bootstrap/js/xlsx.full.min.js' %}"></script>
+    <script type="application/javascript">
+     // 初始化datatable
+        var table = $('#mytable').DataTable({
+            "ajax": {
+                "url": "/assets/all/",
+                //"dataSrc": "", // 三种类型 '' 'data' 'staff'
+                "dataSrc": "",
+                "type": "get",
+                "error": function () {
+                    alert("服务器未正常响应，请重试");
+                }
+            },
+            // 若获取的数据是数组（列表）类型，使用 索引下标 来指定要显示的字段
+            // 若是object      （字典）类型，使用  key   来指定要显示的字段
+            "columns": [
+                {"data": "id", "title": "序号",  "searchable": false, "visible": true },
+                {"data": "ip", "title": ""},
+                {"data": "position", "title": "资源池"},
+                {"data": "physicalposition", "title": "物理位置"},
+                {"data": "hostmanager", "title": "归属人"},
+                {#{"data": "sereis", "title": "SN"},#}
+                {"data": "platformtype", "title": "业务类型"},
+                {"data": "outeraddress", "title": "带外地址"},
+                {#{"data": "yinstructs", "title": "部署说明"},#}
+
+                {
+                    "data": null,
+                    "title": "操作",
+                    "defaultContent": "<button class='edit-btn' type='button'>编辑</button> <button class='delete-btn'><span class='glyphicon-class glyphicon glyphicon-trash'></span></button>"
+                }
+            ],
+
+            "language": {
+                "sProcessing": "处理中...",
+                "sLengthMenu": "显示 _MENU_ 项结果",
+                "sZeroRecords": "没有匹配结果",
+                "sInfo": "显示第 _START_ 至 _END_ 项结果，共 _TOTAL_ 项",
+                "sInfoEmpty": "显示第 0 至 0 项结果，共 0 项",
+                "sInfoFiltered": "(由 _MAX_ 项结果过滤)",
+                "sInfoPostFix": "",
+                "sSearch": "搜索:",
+                "sUrl": "",
+                "sEmptyTable": "表中数据为空",
+                "sLoadingRecords": "载入中...",
+                "sInfoThousands": ",",
+                "oPaginate": {
+                    "sFirst": "首页",
+                    "sPrevious": "上页",
+                    "sNext": "下页",
+                    "sLast": "末页"
+                },
+                "oAria": {
+                    "sSortAscending": ": 以升序排列此列",
+                    "sSortDescending": ": 以降序排列此列"
+                }
+            }
+        }); //end datatable
+
+    </script>
+
+{% endblock %}
