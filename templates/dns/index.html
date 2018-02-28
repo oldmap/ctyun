@@ -87,6 +87,7 @@
     <script type="text/javascript" charset="utf-8">
         // 获取所有域名，拼接成字典形式
         var domain_dict = {};
+        var domain_dict_r = {};
         $.ajax({
             async:false,
             url: '/dns/api/domains/',
@@ -96,6 +97,7 @@
                 //console.log(result);
                 for(var i in result){
                     domain_dict[result[i]['id']] = result[i]['name'];
+                    domain_dict_r[result[i]['name']] = result[i]['id'];
                 }
             },error:function(){
                 alert('获取域名失败!')
@@ -105,6 +107,7 @@
 
         // 获取所有类型，拼接成字典形式
         var type_dict = {};
+        var type_dict_r = {};
         $.ajax({
             async:false,
             url: '/dns/api/types/',
@@ -114,6 +117,7 @@
                 //console.log(result);
                 for(var i in result){
                     type_dict[result[i]['id']] = result[i]['name'];
+                    type_dict_r[result[i]['name']] = result[i]['id'];
                 }
             },error:function(){
                 alert('获取类型失败!')
@@ -306,7 +310,7 @@
             // ajax提交form 获取返回值并展示
             // formData可以获取HTML中form表单的数据，目前遇到些问题，暂时采用笨方法
             var fd = new FormData(document.getElementById("RecordForm"));
-            // 注意 console.log(fd)会显示为空！但时间上数据已经获取到了。
+            // 注意 console.log(fd)会显示为空！但实际上数据已经获取到了。
             // console.log(fd);
             // var host = fd.get('host');
             $.ajax({
@@ -363,8 +367,6 @@
 
         }
 
-        // 添加 单条记录 绑定事件
-        document.getElementById('add').addEventListener('click', add_single_record, false);
 
         //批量编辑 绑定事件
         $("#batch-edit-btn").click(function(){
@@ -376,6 +378,154 @@
             $(".save-btn").click();
         });
 
+
+       // 从文件导入的代码
+        var error_msg = '';
+        // 读取excel文件(转换成json)
+        var result;
+
+        function fileType(file){
+            // 检测文件类型
+            var imgName = file.name;
+            var idx = imgName.lastIndexOf(".");
+            if (idx != -1){
+                var ext = imgName.substr(idx+1).toUpperCase();
+                ext = ext.toLowerCase( );
+                if (ext != 'xlsx' && ext != 'xls'){
+                    alert("只能上传execl文件!");
+                    return false;
+                }else{
+                    return true;
+                }
+            }
+        }
+
+        function handleFile(e) {
+            // 检测文件类型
+            var files = e.target.files, f = files[0];
+            // 检测文件类型
+            var is_excel = fileType(f);
+            if (is_excel) {
+                var reader = new FileReader();
+                reader.readAsBinaryString(f);
+                reader.onload = function(e) {
+                    var data = e.target.result;
+                    var workbook = XLSX.read(data, {type: 'binary'});
+
+                    /* DO SOMETHING WITH workbook HERE */
+                    var firs_sheet = workbook.SheetNames[0];
+                    result = XLSX.utils.sheet_to_json(workbook.Sheets[firs_sheet], {header:1});
+                    // 检查文件内容是否合法数据
+                    checkFile();
+                };
+            }
+        }
+
+        function checkFile() {
+            // 默认输出框是空的，提交按钮是灰色不能提交
+            $('#output').html('');
+            var all_data_is_valid = true;
+            // 循环验证每条数据是否合法,存在非法数据则红色输出
+            for (var i=0; i<result.length; i++) {
+                console.log('从excel读取的数据长度为:' + result[i].length);
+                var flag = true;
+                if(result[i].length != 4){
+                    all_data_is_valid = false;
+                    flag = false;
+                }else{
+                    for (var j=0; j<4; j++) {
+                        if(result[i][j] == null){
+                            flag = false;
+                            all_data_is_valid = false;
+                        }
+                    }
+                }
+                // 如果单条数据不合法，则红色输出到输出框
+                if(flag == false){
+                    var excel_row = i+1;
+                    var msg = "<p style='color: red'>" +'第'+ excel_row +'行:'+ result[i] + '格式错误</p>';
+                    $('#output').append(msg);
+                    $('#upload').attr('disabled', true);
+                }
+            }
+            // 若所有数据均合法, 可以点击提交
+            if (all_data_is_valid){
+                $('#upload').attr('disabled', false);
+            }
+        }
+
+        function reload_table(){
+            // 重新加载datatable
+            table.ajax.reload();
+        }
+
+        function submit() {
+            // 清空日志
+            $('#error_logs').html('');
+
+            console.log('数据格式正确，开始提交.');
+            for (var i=1; i<result.length; i++) {
+                var data = {
+                    'host': result[i][0],
+                    'domain': domain_dict_r[result[i][1]],
+                    'type': type_dict_r[result[i][2]],
+                    'value': result[i][3],
+                };
+                console.log('提交的数据为:', data);
+                $.ajax({
+                    "url": "/dns/api/records/",
+                    "data": data,
+                    "type": "post",
+                    "error": function(callback){
+                        var msg = "<p >" + JSON.stringify(data) + '添加失败:' + JSON.stringify(callback) +'</p>';
+                        error_msg += msg;
+                        $('#error_logs').append(error_msg);
+                        alert("添加失败");
+                    },
+                    "success":function(callback){
+                        console.log(data, '提交成功!', callback);
+                    }
+                });
+            }
+            $('#upload').attr('disabled', true);
+
+            // 刷新页面
+            //window.location.reload();
+        }
+
+        function rndc_reload() {
+            $.ajax({
+                url: "http://dns01.ctyun.org:18080/rndc_reload/",
+                type: "GET",
+                dataType: "text",
+                //data: data,
+                success: function (callback) {
+                    alert('10.35.129.61' + callback);
+                },
+                error: function () {
+                    alert('10.35.129.61:连接失败！')
+                }
+            });
+
+            $.ajax({
+                url: "http://dns02.ctyun.org:18080/rndc_reload/",
+                type: "GET",
+                dataType: "text",
+                //data: data,
+                success: function (callback) {
+                    alert('10.35.129.62' + callback);
+                },
+                error: function () {
+                    alert('10.35.129.62: 连接失败！')
+                }
+            });
+        }
+
+        document.getElementById('input').addEventListener('change', handleFile, false);
+        document.getElementById('conform').addEventListener('click', reload_table, false);
+        document.getElementById('rndc').addEventListener('click', rndc_reload, false);
+        // 添加 单条记录 绑定事件
+        document.getElementById('add').addEventListener('click', add_single_record, false);
     </script>
 
 {% endblock %}

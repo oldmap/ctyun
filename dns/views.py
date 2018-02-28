@@ -5,6 +5,7 @@ from dns.serializers import *
 from django.shortcuts import render
 from dns.forms import RecordForm
 
+
 class TypeViewSet(viewsets.ModelViewSet):
     queryset = Type.objects.all()
     serializer_class = TypeSerializer
