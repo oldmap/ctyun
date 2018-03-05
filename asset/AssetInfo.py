@@ -63,9 +63,9 @@ class Asset_info():
         mapd_keys = ['machinetype', 'clusterinfo', 'grouptype', 'platformtype', 'position']
         for key in self.kwargs:
             if key in mapd_keys:
-                index_str = " %s like '%s' " % (key, self.dict_table_r.get(self.kwargs.get(key)))
+                index_str = " {0} like '%{1}%' ".format(key, self.dict_table_r.get(self.kwargs.get(key)))
             else:
-                index_str = " %s like '%s' " % (key, self.kwargs.get(key))
+                index_str = " {0} like '%{1}%' ".format(key, self.kwargs.get(key))
             index_list.append(index_str)
         if index_list:
             all_index_str = ('and').join(index_list)
