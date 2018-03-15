@@ -1,8 +1,15 @@
-# ctyun
-中国电信云计算有限公司-大数据事业部 运维平台 部分个人开源项目
-纯个人项目。。。
-app简介：
-    实现内外DNS解析的web管理后台，所有解析记录保持在数据（mysql）中，通过client客户端同步数据库中的内容到DNS解析文件，然后reload DNS service。
-项目简单，实用，与大家共享。    
+# ctyun DNS管理后台
 
+>v2.0,引入restframework框架，通过restfull格式API，大大简化了后端的逻辑处理过程。几行代码即可替代上个版本大量逻辑处理。
+####简介
+    我们的内网解析是基于bind实现的，众所周知，bind对解析的修改是通过修改一个个zone文件实现的，把所有记录都放在文件里，然后对文件的增删改查时是很不方便也很不安全的，于是做了这么一个将说有解析记录放置在数据库中，再将数据库中记录导入到zone文件，然后rndc reload（前端触发）这样一个web实现的DNS管理后台。
+
+####demo
+
+    (小型云主机，请勿大量测试)
+    http://test.dns.ctyun.org:8000/dns/
+    username: taoge
+    password: qwer1234
+    
 ![demo](https://github.com/xiaotaoliu/ctyun/blob/master/statics/dns/images/demo.png)
+
