@@ -1,21 +1,17 @@
 from django.contrib import admin
 from django.conf.urls import include, url
 from home import views as home_view
-from asset import views as asset_view
+from dns.views import index as dns_index
 
 urlpatterns = [
     url('admin/', admin.site.urls),
 
     url('dns/', include('dns.urls')),
 
-    url('assets/all/', asset_view.all_hosts),
-    url('assets/api/', asset_view.api),
-    url('assets/', asset_view.index),
-
     # url(r'^accounts/login/$', LoginView.as_view()),
     # url(r'^accounts/logout/$', LogoutView.as_view(next_page='/')),
     # 测试自定义用户验证
     url(r'^login/$', home_view.login_view),
     url(r'^logout/$', home_view.logout_view),
-    url(r'^$', home_view.index),  # 总的index页面入口
+    url(r'^$', dns_index),  # 总的index页面入口
 ]

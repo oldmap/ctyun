@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'home.apps.HomeConfig',
     'dns.apps.DnsConfig',
-    'asset.apps.AssetConfig',
     'rest_framework',
 ]
 
