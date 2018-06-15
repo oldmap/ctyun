@@ -26,8 +26,7 @@ SECRET_KEY = 'yfxfk0c*j0(-!2sv!84ex(ybf(v94o2#+grwrn1=%9m+mx@9cz'
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    '192.168.0.31',
-    '127.0.0.1',
+    '*'
 ]
 
 
@@ -81,25 +80,24 @@ WSGI_APPLICATION = 'ctyun.wsgi.application'
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
 # 本地测试
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}
+#DATABASES = {
+#    'default': {
+#        'ENGINE': 'django.db.backends.sqlite3',
+#        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#    }
+#}
 
 # mysql环境
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'yunweipingtai01',
-#         'USER': 'yunweipingtai01',
-#         'PASSWORD': 'aFdguo9273SD7K',
-#         'HOST': '10.35.129.61',
-#         'PORT': '3306',
-#     }
-# }
-
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'ctyun',
+        'USER': 'ctyun',
+        'PASSWORD': 'ctyun',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
